@@ -1,0 +1,26 @@
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET;
+
+const isLoggedIn = (req, res, next) => {
+    // Extract token from cookies or headers
+    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).json({ status: false, message: 'No token provided' });
+    }
+
+    // Verify the token
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ status: false, message: 'Invalid token' });
+        }
+
+        // Add user ID to request object
+        req.userId = decoded.id;
+
+        // Proceed to the next middleware or route handler
+        next();
+    });
+};
+
+module.exports = isLoggedIn;
